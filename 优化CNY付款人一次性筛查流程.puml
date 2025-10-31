@@ -1,0 +1,25 @@
+
+@startuml 优化CNY付款人一次性筛查流程
+
+start
+
+:添加收款人信息;
+
+if (道琼斯预扫命中？) then (yes)
+    if (风控同事完成风险排除?) then (no)
+        :用户发起首笔结汇付款;
+        :弹窗提示风险，补充信息;
+        :将补充信息与风险信息列表进行二次判断;
+        if (补充信息能否排除风险?) then (yes)
+        else (no)
+            :交易阻断;
+            stop
+        endif
+    else (yes)
+    endif
+else (no)
+endif
+:正常进行结汇付款;
+stop
+
+@enduml
