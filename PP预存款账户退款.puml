@@ -1,0 +1,69 @@
+@startuml PP预存款账户退款流程
+
+participant 商户 as merchant
+participant Paykka as pk
+participant PingPong as pp
+participant 付款方 as buyer
+
+== 入账部分 ==
+
+' autonumber
+
+buyer -[#red]> pp: <font color=red>付款方从外部向VA账户转账
+
+pp -> pk: 来账通知
+
+note right of pk
+Topic: currents.pre_receive
+end note
+
+pk -> pk: 审核不通过
+
+== 退款部分 ==
+
+pk -> pk: 根据收款账号开户银行，判断退款方式
+
+' autonumber stop
+
+alt 支持原路退回的开户银行渠道
+    pk -> pp: 原路退回
+
+    note right of pk
+    /v2/currentz/transaction/inbound/refund
+    end note
+
+    pp -> pk: 原路退回状态通知
+
+    note right of pk
+    Topic: currents.origin_refund
+    end note
+
+else 不通过原路退回的开户银行渠道
+    pk -> pp: 预存款账户退款
+
+    note right of pk
+    /v2/currentz/payout/create
+    end note
+
+    pp -> pk: 支付结果通知
+
+    note right of pk
+    Topic: currents.payout.bank
+    end note
+
+end
+
+alt 支付结果为失败
+pk -> pp: 人工处理，联系PP手工退款
+
+pk -> pk: 手动将订单状态改为[已退款]
+
+end
+
+' autonumber resume
+
+pp -[#red]> buyer: <font color=red>资金退回至付款方
+
+====
+
+@enduml
