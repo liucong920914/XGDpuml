@@ -1,0 +1,77 @@
+@startuml IBC电商平台验证资金特殊处理流程
+
+participant 电商平台 as ds
+participant 商户VA子账户 as va
+participant 8760主账户 as 60
+participant 8752运营账户 as 52
+
+== IBC电商平台验证资金特殊处理流程 ==
+
+autonumber
+
+note over ds #Yellow
+【首日】
+end note
+
+ds -[#red]> va: 电商平台向商户VA账户\n打一笔小额款项
+
+note over va
+VA账户余额为正
+end note
+
+va -[#red]> 60: VA账户资金自动归集至PayKKa的8760主账户
+
+note over va
+VA账户余额为0
+end note
+
+note over 60
+主账户余额增加
+(但最终在清算后会被记入商户待结算账户)
+end note
+
+52 -[#Blue]> 52: 对账\n将小额款项计入商户待结算账户\n发起记账，增加商户钱包余额
+
+note over ds #Yellow
+【次日】
+end note
+
+va -[#red]> ds: 电商平台发起从VA账户\n扣除上述小额款项
+
+note over va
+VA账户余额为负
+end note
+
+52 -[#red]> va: 当商户子账户透支时，\nIBC会系统扣除PayKKa运营账户余额来补足
+
+note over va
+VA账户余额为0
+end note
+
+note over 52
+OP账户短款
+end note
+
+autonumber stop
+
+== IBC正常入账处理流程 ==
+
+autonumber
+
+ds -[#red]> va: 外部汇款人向商户VA账户汇款
+
+note over va
+VA账户余额为正
+end note
+
+va -[#red]> 60: VA账户资金自动归集至PayKKa的8760主账户
+
+note over va
+VA账户余额为0
+end note
+
+60 -[#Blue]> 60: 对账\n将汇入金额记入商户待结算账户\n发起记账，更新商户钱包余额
+
+@enduml
+
+
