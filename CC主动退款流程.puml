@@ -1,0 +1,54 @@
+@startuml CC渠道系统退款
+
+participant 商户 as merchant
+participant Paykka as pk
+participant CurrencyCloud as cc
+participant 付款方 as buyer
+
+== 入账部分 ==
+
+buyer -[#red]> cc: <font color=red>付款方从外部向VA账户转账
+
+cc -> pk: 来账通知
+
+note right of pk
+Pending Cash Manager Transaction Notification
+end note
+
+pk -> pk: 审核不通过
+
+== 退款部分 ==
+
+pk -> cc: 根据来账通知里的transaction id，查询交易信息
+
+note right of pk
+/v2/transactions/{id}
+end note
+
+pk -> cc: 根据交易信息里的related_entity_id，查询sender信息
+note right of pk
+/v2/transactions/sender/{id}
+end note
+
+pk -> cc: 根据来账通知信息、付款人信息，发起主动退款
+note right of pk
+/v2/payments/create
+end note
+
+cc -> pk: 接收CC通知
+note right of pk
+payment compliance failed notification
+payment released notification
+payment failed notification
+end note
+
+alt 退款交易失败
+    pk -> cc: 转运营人工处理
+    pk -> pk: 手动将订单状态修改为[已退款]
+end
+
+cc -[#red]> buyer: <font color=red>资金退回至付款方
+
+@enduml
+
+
